@@ -13,10 +13,10 @@
  #include <iostream>
 int main(int argc, char *argv[], char *envp[])
 {
-	ParserIniFile("test.ini");
+	ParseIniFile("test.ini");
 	std::cout << "Name: " << GetValueToString("Name") << std::endl;
 	std::cout << "Strength: " << GetValueToInt("Strength") << "\n";
 	std::cout << "Cost: " << GetValueToCStr("Cost") << "\n";
-	CleaningUpIniMemory();
+	CleanUpIniMemory();
 	return 0;
 }

@@ -35,7 +35,7 @@ int ParseIniFile(std::string iniFile)
 	while (!ifs.eof())
 	{
 		std::getline(ifs,Line);
-		if (Line.empty() || Line.substr(0,1) == '#')
+		if (Line.empty() || Line.substr(0,1) == "#")
 			continue;
 		std::string Key;
 		Key = GetKeyFromLine(Line);
@@ -48,6 +48,7 @@ int ParseIniFile(std::string iniFile)
 	}
 	// --i;
 	ifs.close();
+	return 1;
 }
 
 void CleanUpIniMemory()
@@ -77,7 +78,7 @@ int GetValueToInt(std::string key)
 {
 	for (int j = 0; j < i; ++j)
 		if (IniFile_Table[j]->key == key)
-			return IniFile_Table[j]->value.stoi();
+			return stoi(IniFile_Table[j]->value);
 	return 0;
 }
 
@@ -105,7 +106,7 @@ std::string LTrim(std::string str)
 	return str.substr(0, p);
 }
 
-std::string RTrim(std::sttring str)
+std::string RTrim(std::string str)
 {
 	std::string::size_type p = str.find_last_not_of(' ');
 	if (p == std::string::npos)

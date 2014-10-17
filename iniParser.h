@@ -1,4 +1,4 @@
-#param once
+#pragma once
 /**
  * File:	iniParser.h
  * Author:	LonelyDrifter
