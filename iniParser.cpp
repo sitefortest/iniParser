@@ -84,34 +84,34 @@ int GetValueToInt(std::string key)
 
 std::string GetKeyFromLine(std::string Line)
 {
-	std::string::size_type found = Line.find_first_of('=');
+	std::string::size_type found = Line.find('=');
 	if (found == std::string::npos || found > 100)
 		return "";
-	return Trim(Line.substr(0,(found-1)));
+	return Trim(Line.substr(0,found));
 }
 
 std::string GetValueFromLine(std::string Line)
 {
-	std::string::size_type found = Line.find_first_of('=');
+	std::string::size_type found = Line.find('=');
 	if (found == std::string::npos || found > 100)
 		return "";
-	return Trim(Line.substr((found+1)));
+	return Trim(Line.substr(found+1));
 }
 
 std::string LTrim(std::string str)
 {
-	std::string::size_type p = str.find_first_not_of(' ');
-	if (p == std::string::npos)
+	std::string::size_type found = str.find_first_not_of(' ');
+	if (found == std::string::npos)
 		return "";
-	return str.substr(0, p);
+	return str.substr(found);
 }
 
 std::string RTrim(std::string str)
 {
-	std::string::size_type p = str.find_last_not_of(' ');
-	if (p == std::string::npos)
+	std::string::size_type found = str.find_last_not_of(' ');
+	if (found == std::string::npos)
 		return "";
-	return str.substr(0, p);
+	return str.substr(0, found+1);
 }
 
 std::string Trim(std::string str)

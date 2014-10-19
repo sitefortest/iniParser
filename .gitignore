@@ -3,3 +3,5 @@
 iniReader/
 *.exe
 *.obj
+*.ilk
+*.pdb
