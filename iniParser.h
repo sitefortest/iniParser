@@ -34,7 +34,7 @@ void CleanUpIniMemory();
  * @param:	the key that is wanted to be searched
  * @return:	the std::string value of the key
  */
-std::string GetValueToString(std::string);
+std::string GetValueToString(std::string, std::string);
 
 /**
  * get key's value and convert to c_str
@@ -42,7 +42,7 @@ std::string GetValueToString(std::string);
  * @param:	the requested key
  * @return:	c_str value of the requested key
  */
-const char *GetValueToCStr(std::string);
+const char *GetValueToCStr(std::string, std::string);
 
 /**
  * get key's value and convert to int
@@ -50,7 +50,7 @@ const char *GetValueToCStr(std::string);
  * @param:	the requested key
  * @return:	int value of the requested key
  */
-int GetValueToInt(std::string);
+int GetValueToInt(std::string, std::string);
 
 /**
  * parse a line and get the string that is in the left of the '=' character

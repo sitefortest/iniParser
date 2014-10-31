@@ -14,9 +14,9 @@
 int main(int argc, char *argv[], char *envp[])
 {
 	ParseIniFile("test.ini");
-	std::cout << "Name: " << GetValueToString("Name") << std::endl;
-	std::cout << "Prerequisite: " << GetValueToCStr("Prerequisite") << "\n";
-	std::cout << "Cost: " << GetValueToInt("Cost") << '\n';
+	std::cout << "Name: " << GetValueToString("Name","GBPTNK") << std::endl;
+	std::cout << "Prerequisite: " << GetValueToCStr("Prerequisite","GBPTNK") << "\n";
+	std::cout << "Cost: " << GetValueToInt("Cost","GBPTNK") << '\n';
 	CleanUpIniMemory();
 	return 0;
 }
