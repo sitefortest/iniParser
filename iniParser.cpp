@@ -17,15 +17,20 @@
  * global section
  *
  */
+#define LINETYPE_UNSUPPORT (0x00000000);
+#define LINETYPE_SECTION_HEAD (0x00000001);
+#define LINETYPE_COMMENT (0x00000002);
+#define LINETYPE_COMMON (0x00000004);
+
 typedef struct _line{
+	unsigned int lineType;
 	std::string key;
 	std::string value;
 	std::string comment;
 	std::string head;
 }LINE, *PLINE;
 
-std::vector<PLINE> gIniMemory_Section_Head;
-std::vector<std::vector<PLINE>> gIniMemory;
+std::vector<LINE> gIniMemory;
 
 int ParseIniFile(std::string iniFile)
 {
@@ -36,24 +41,14 @@ int ParseIniFile(std::string iniFile)
 	//Read a line from stream;
 	std::string iniFile_Line;
 	//Save a line in memory as local
-	PLINE iniMemory_Line = new LINE;
-	//Save the current section index for oprating the lines belonged to it
-	std::vector<std::vector<PLINE>>::size_type sectionPos = std::string::npos;
+	LINE iniMemory_Line = {0,"","","",""};
 	
-	std::vector<PLINE> vec;
-	vec.push_back(nullptr);
-
-	gIniMemory_Section_Head.push_back(nullptr);
-	gIniMemory_Section_Head.back() = new LINE;
-	(gIniMemory_Section_Head.back())->head = "Default";
-	gIniMemory.push_back(vec);
-
 	while (!ifs.eof())
 	{
 		std::getline(ifs,iniFile_Line);
 		
 		//trim spaces;
-		Trim(iniFile_Line);
+		iniFile_Line = Trim(iniFile_Line);
 
 		if (iniFile_Line.empty())
 			continue;
@@ -61,85 +56,85 @@ int ParseIniFile(std::string iniFile)
 		//support ';' comment whatever it is at;
 		if (iniFile_Line.find(';') != std::string::npos)
 		{
-			iniMemory_Line->comment = iniFile_Line.substr(iniFile_Line.find(';')+1);
-			iniFile_Line.pop_back();
+			iniMemory_Line.lineType |= LINETYPE_COMMENT;
+			iniMemory_Line.comment = iniFile_Line.substr(iniFile_Line.find(';')+1);
+			iniFile_Line = iniFile_Line.substr(0,iniFile_Line.find(';'));
 		}
 		//==================end=========================
 		
 		//trim spaces;
-		Trim(iniFile_Line);
+		iniFile_Line = Trim(iniFile_Line);
 
 		//=========deal with section head===========
 		if (iniFile_Line.front() == '[' && iniFile_Line.back() == ']')
 		{
-			iniMemory_Line->head = iniFile_Line.substr(1,iniFile_Line.size()-2);
-			gIniMemory_Section_Head.push_back(nullptr);
-			gIniMemory_Section_Head.back() = new LINE;
-			(gIniMemory_Section_Head.back())->head = iniMemory_Line->head;
-			(gIniMemory_Section_Head.back())->comment = iniMemory_Line->comment;
-			gIniMemory.push_back(vec);
+			iniMemory_Line.lineType |= LINETYPE_SECTION_HEAD;
+			iniMemory_Line.head = iniFile_Line.substr(1,iniFile_Line.size()-2);
+			gIniMemory.push_back(iniMemory_Line);
+
+			//clear up iniMemory_Line struct;
+			iniMemory_Line.lineType = LINETYPE_UNSUPPORT;
+			iniMemory_Line.key = "";
+			iniMemory_Line.value = "";
+			iniMemory_Line.comment = "";
 			continue;
 		}
 		//================== end ===================
 
 		//deal with lines;
-		iniMemory_Line->key = GetKeyFromLine(iniFile_Line);
-		iniMemory_Line->value = GetValueFromLine(iniFile_Line);
-		(gIniMemory.back()).back() = new LINE;
-		((gIniMemory.back()).back())->key = iniMemory_Line->key;
-		((gIniMemory.back()).back())->value = iniMemory_Line->value;
-		((gIniMemory.back()).back())->comment = iniMemory_Line->comment;
-		((gIniMemory.back()).back())->head = iniMemory_Line->head;
+		iniMemory_Line.key = GetKeyFromLine(iniFile_Line);
+		iniMemory_Line.value = GetValueFromLine(iniFile_Line);
+		if (!((iniMemory_Line.key).empty()) && !((iniMemory_Line.value).empty()))
+			iniMemory_Line.lineType |= LINETYPE_COMMON;
+		if (iniMemory_Line.lineType)
+		{
+			gIniMemory.push_back(iniMemory_Line);
+			iniMemory_Line.lineType = LINETYPE_UNSUPPORT;
+			iniMemory_Line.key = "";
+			iniMemory_Line.value = "";
+			iniMemory_Line.comment = "";
+		}
 	}
 	ifs.close();
+
 	return 1;
 }
 
 void CleanUpIniMemory()
 {
-	while (gIniMemory_Section_Head.empty())
-	{
-		delete gIniMemory_Section_Head.back();
-		gIniMemory_Section_Head.pop_back();
-	}
-	while (gIniMemory.empty())
-	{
-		while ((gIniMemory.back()).empty())
-		{
-			delete (gIniMemory.back()).back();
-			(gIniMemory.back()).pop_back();
-		}
+	while (!gIniMemory.empty())
 		gIniMemory.pop_back();
-	}
+
 }
 
-std::string GetValueToString(std::string key, std::string section_Head)
+std::string GetValueToString(std::string key, std::string head)
 {
-	std::vector<PLINE>::size_type section_Total = gIniMemory_Section_Head.size();
-	std::vector<PLINE>::size_type section_Lines_Total = 0;
-	for (decltype(section_Total) i = 0; i < section_Total; ++i)
+	for (auto beg = gIniMemory.begin(),end = gIniMemory.end(); beg != end; ++beg)
 	{
-		if (gIniMemory_Section_Head[i]->head == section_Head)
-		{
-			section_Lines_Total = gIniMemory[i].size();
-			for (decltype(section_Lines_Total) j = 0; j < section_Lines_Total; ++j)
-			{
-				if (gIniMemory[i][j]->key == key)
-					return gIniMemory[i][j]->value;
-			}
-		}
+		if ((*beg).head == head && (*beg).key == key)
+			return (*beg).value;
 	}
 	return "";
 }
 
-const char *GetValueToCStr(std::string key, std::string section_Head)
+const char *GetValueToCStr(std::string key, std::string head)
 {
-	return (GetValueToString(key,section_Head)).c_str();
+	for (auto beg = gIniMemory.begin(),end = gIniMemory.end(); beg != end; ++beg)
+	{
+		if ((*beg).head == head && (*beg).key == key)
+			return (*beg).value.c_str();
+	}
+	return "";
 }
 
-int GetValueToInt(std::string key, std::string section_Head)
+int GetValueToInt(std::string key, std::string head)
 {
-	return std::stoi((GetValueToString(key,section_Head)));
+	for (auto beg = gIniMemory.begin(),end = gIniMemory.end(); beg != end; ++beg)
+	{
+		if ((*beg).head == head && (*beg).key == key)
+			return std::stoi((*beg).value);
+	}
+	return 0;
 }
 
 std::string GetKeyFromLine(std::string line)
