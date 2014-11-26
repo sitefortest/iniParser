@@ -23,7 +23,7 @@ int main(int argc, char *argv[], char *envp[])
 	str = GetValueToString("Prerequisite", "GBPTNK");
 	std::cout << str.c_str() << std::endl;
 	std::cout << "==============" << std::endl;
-	std::cout << GetValueToCStr("Prerequisite", "GBPTNK") << std::endl;
+	std::cout << GetValueToCStr("Name", "General") << std::endl;
 	//std::cout << "==============" << std::endl;
 	//std::cout << GetValueToString("Prerequisite", "GBPTNK").c_str() << std::endl;
 #endif

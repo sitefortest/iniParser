@@ -12,6 +12,8 @@
 #include "iniParser.h"
 #include <fstream>
 #include <vector>
+#include <unordered_map>
+#include <utility>
 
 /**
  * global section
@@ -30,7 +32,7 @@ typedef struct _line{
 	std::string head;
 }LINE, *PLINE;
 
-std::vector<LINE> gIniMemory;
+std::unordered_map<std::string, std::vector<LINE>> gIniMemory;
 
 int ParseIniFile(std::string iniFile)
 {
@@ -70,7 +72,8 @@ int ParseIniFile(std::string iniFile)
 		{
 			iniMemory_Line.lineType |= LINETYPE_SECTION_HEAD;
 			iniMemory_Line.head = iniFile_Line.substr(1,iniFile_Line.size()-2);
-			gIniMemory.push_back(iniMemory_Line);
+			std::vector<LINE> vec;
+			gIniMemory.insert(std::make_pair(iniMemory_Line.head,vec));
 
 			//clear up iniMemory_Line struct;
 			iniMemory_Line.lineType = LINETYPE_UNSUPPORT;
@@ -88,7 +91,10 @@ int ParseIniFile(std::string iniFile)
 			iniMemory_Line.lineType |= LINETYPE_COMMON;
 		if (iniMemory_Line.lineType)
 		{
-			gIniMemory.push_back(iniMemory_Line);
+			auto found = gIniMemory.find(iniMemory_Line.head);
+			if (found == gIniMemory.end())
+				continue;
+			(found->second).push_back(iniMemory_Line);
 			iniMemory_Line.lineType = LINETYPE_UNSUPPORT;
 			iniMemory_Line.key = "";
 			iniMemory_Line.value = "";
@@ -103,36 +109,48 @@ int ParseIniFile(std::string iniFile)
 void CleanUpIniMemory()
 {
 	while (!gIniMemory.empty())
-		gIniMemory.pop_back();
+		gIniMemory.clear();
 
 }
 
 std::string GetValueToString(std::string key, std::string head)
 {
-	for (auto beg = gIniMemory.begin(),end = gIniMemory.end(); beg != end; ++beg)
+	auto found = gIniMemory.find(head);
+	if (found != gIniMemory.end())
 	{
-		if ((*beg).head == head && (*beg).key == key)
-			return (*beg).value;
+		for (auto beg = (found->second).begin(),end = (found->second).end(); beg != end; ++beg)
+		{
+			if (beg->key == key)
+				return beg->value;
+		}
 	}
 	return "";
 }
 
 const char *GetValueToCStr(std::string key, std::string head)
 {
-	for (auto beg = gIniMemory.begin(),end = gIniMemory.end(); beg != end; ++beg)
+	auto found = gIniMemory.find(head);
+	if (found != gIniMemory.end())
 	{
-		if ((*beg).head == head && (*beg).key == key)
-			return (*beg).value.c_str();
+		for (auto beg = (found->second).begin(),end = (found->second).end(); beg != end; ++beg)
+		{
+			if (beg->key == key)
+				return (beg->value).c_str();
+		}
 	}
 	return "";
 }
 
 int GetValueToInt(std::string key, std::string head)
 {
-	for (auto beg = gIniMemory.begin(),end = gIniMemory.end(); beg != end; ++beg)
+	auto found = gIniMemory.find(head);
+	if (found != gIniMemory.end())
 	{
-		if ((*beg).head == head && (*beg).key == key)
-			return std::stoi((*beg).value);
+		for (auto beg = (found->second).begin(),end = (found->second).end(); beg != end; ++beg)
+		{
+			if (beg->key == key)
+				return std::stoi(beg->value);
+		}
 	}
 	return 0;
 }
